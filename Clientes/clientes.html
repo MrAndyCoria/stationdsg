@@ -6,6 +6,33 @@
     <title>Consulta de Servicio | Estación DSG</title>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.6.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="stylesheet" href="./styles/clientes.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root { --primary: #25d366; --dark: #0f172a; --gray: #64748b; }
+        
+        /* Estilos para la Hoja de Servicio */
+        .service-sheet { background: white; color: #1e293b; padding: 30px; border-radius: 12px; margin-top: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); text-align: left; }
+        .sheet-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 20px; }
+        .brand-title { color: var(--dark); font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        
+        .info-section { margin-bottom: 20px; }
+        .info-section h4 { font-size: 0.8rem; text-transform: uppercase; color: var(--gray); letter-spacing: 0.05em; margin-bottom: 10px; border-left: 3px solid var(--primary); padding-left: 10px; }
+        
+        .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .data-box { background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .data-box label { display: block; font-size: 0.7rem; color: var(--gray); margin-bottom: 2px; }
+        .data-box span { font-weight: 600; font-size: 0.95rem; color: var(--dark); }
+
+        .notes-list { background: #f1f5f9; border-radius: 8px; padding: 15px; list-style: none; }
+        .note-card { border-bottom: 1px solid #cbd5e1; padding: 8px 0; font-size: 0.85rem; }
+        .note-card:last-child { border-bottom: none; }
+        .note-meta { font-size: 0.7rem; font-weight: bold; color: var(--primary); }
+
+        .btn-download { width: 100%; background: var(--dark); color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px; transition: 0.3s; }
+        .btn-download:hover { background: #1e293b; }
+
+        @media (max-width: 600px) { .grid-info { grid-template-columns: 1fr; } }
+    </style>
 </head>
 <body>
 
@@ -15,21 +42,58 @@
             <h1>Estación DSG</h1>
         </div>
         
-        <p>Ingresa tu número de WhatsApp para consultar el estado de tu vehículo y garantía.</p>
+        <p>Consulta el historial técnico y garantía de tu vehículo.</p>
         
         <form id="searchForm">
-            <input type="tel" id="clientPhone" placeholder="Tu número (10 dígitos)" required maxlength="10">
-            <button type="submit" id="btnSearch">Consultar Garantía</button>
+            <input type="tel" id="clientPhone" placeholder="WhatsApp (10 dígitos)" required maxlength="10">
+            <button type="submit" id="btnSearch">Consultar Orden</button>
         </form>
 
-        <div id="resultArea" class="result-card" style="display: none;">
-            <hr>
-            <h3>Estado de tu Orden</h3>
-            <div class="data-row"><span>Orden:</span> <strong id="res-id"></strong></div>
-            <div class="data-row"><span>Vehículo:</span> <strong id="res-auto"></strong></div>
-            <div class="data-row"><span>Garantía hasta:</span> <strong id="res-garantia" style="color: #25d366;"></strong></div>
-            <div class="data-row"><span>Trabajo:</span> <p id="res-trabajo"></p></div>
-            <a id="res-doc" href="#" target="_blank" class="btn-doc" style="display:none;">Ver Documentación</a>
+        <div id="resultArea" style="display: none;">
+            <div id="printableArea" class="service-sheet">
+                <div class="sheet-header">
+                    <div class="brand-title"><i class="ri-steering-2-line" style="color:var(--primary)"></i> Estación DSG</div>
+                    <div style="text-align: right;">
+                        <span style="display:block; font-size: 0.7rem; color:var(--gray)">ORDEN DE SERVICIO</span>
+                        <strong id="res-id" style="color:var(--primary); font-size: 1.1rem;"></strong>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h4>Información del Vehículo</h4>
+                    <div class="grid-info">
+                        <div class="data-box"><label>Vehículo</label><span id="res-auto"></span></div>
+                        <div class="data-box"><label>VIN / Serie</label><span id="res-vin"></span></div>
+                        <div class="data-box"><label>Transmisión</label><span id="res-trans"></span></div>
+                        <div class="data-box"><label>Garantía Vigente</label><span id="res-garantia" style="color:var(--primary)"></span></div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h4>Detalles Técnicos</h4>
+                    <div class="data-box" style="margin-bottom: 10px;">
+                        <label>Diagnóstico Inicial</label>
+                        <p id="res-diagnostico" style="margin:0; font-size: 0.9rem;"></p>
+                    </div>
+                    <div class="data-box">
+                        <label>Trabajo Realizado</label>
+                        <p id="res-trabajo" style="margin:0; font-size: 0.9rem; font-weight: 600;"></p>
+                    </div>
+                </div>
+
+                <div class="info-section" id="section-notas">
+                    <h4>Bitácora de Seguimiento</h4>
+                    <div id="res-notas-lista" class="notes-list"></div>
+                </div>
+                
+                <p style="font-size: 0.6rem; color: var(--gray); text-align: center; margin-top: 20px;">
+                    Este documento es una constancia digital de servicio. Estación DSG - Especialistas en Transmisiones.
+                </p>
+            </div>
+
+            <button class="btn-download" onclick="downloadPDF()">
+                <i class="ri-file-pdf-line"></i> Descargar Hoja de Servicio (PDF)
+            </button>
         </div>
     </div>
 
@@ -59,7 +123,6 @@
             btn.disabled = true;
 
             try {
-                // Buscamos en la colección 'servicios' por número de WhatsApp
                 const q = query(
                     collection(db, "servicios"), 
                     where("whatsapp", "==", phone),
@@ -72,16 +135,27 @@
                 if (!querySnapshot.empty) {
                     const data = querySnapshot.docs[0].data();
                     
-                    // Llenar datos
+                    // Mapeo de datos a la Hoja
                     document.getElementById('res-id').innerText = data.id_orden;
                     document.getElementById('res-auto').innerText = `${data.marca} ${data.modelo} ${data.anio}`;
+                    document.getElementById('res-vin').innerText = data.vin || "NO REGISTRADO";
+                    document.getElementById('res-trans').innerText = data.transmision || "N/A";
                     document.getElementById('res-garantia').innerText = data.garantia;
+                    document.getElementById('res-diagnostico').innerText = data.diagnostico || "Sin diagnóstico registrado";
                     document.getElementById('res-trabajo').innerText = data.trabajo;
                     
-                    if(data.documentos) {
-                        const link = document.getElementById('res-doc');
-                        link.href = data.documentos;
-                        link.style.display = "block";
+                    // Render de Notas
+                    const listaNotas = document.getElementById('res-notas-lista');
+                    if(data.notas && data.notas.length > 0) {
+                        document.getElementById('section-notas').style.display = "block";
+                        listaNotas.innerHTML = data.notas.map(n => `
+                            <div class="note-card">
+                                <div class="note-meta">${n.fecha}</div>
+                                <div class="note-text">${n.texto}</div>
+                            </div>
+                        `).join('');
+                    } else {
+                        document.getElementById('section-notas').style.display = "none";
                     }
 
                     resultArea.style.display = "block";
@@ -91,12 +165,28 @@
                 }
             } catch (error) {
                 console.error("Error:", error);
-                alert("Hubo un error al consultar. Verifica los datos.");
+                alert("Error al consultar. Si el error persiste, contacta a soporte técnico.");
             } finally {
-                btn.innerText = "Consultar Garantía";
+                btn.innerText = "Consultar Orden";
                 btn.disabled = false;
             }
         });
+
+        // Función para descargar PDF
+        window.downloadPDF = function() {
+            const element = document.getElementById('printableArea');
+            const ordenId = document.getElementById('res-id').innerText;
+            
+            const opt = {
+                margin:       10,
+                filename:     `Servicio_${ordenId}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        };
     </script>
 </body>
 </html>
