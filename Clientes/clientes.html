@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Servicio | Estación DSG</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.6.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="./styles/clientes.css">
+</head>
+<body>
+
+    <div class="search-container">
+        <div class="logo-area">
+            <i class="ri-steering-2-line"></i>
+            <h1>Estación DSG</h1>
+        </div>
+        
+        <p>Ingresa tu número de WhatsApp para consultar el estado de tu vehículo y garantía.</p>
+        
+        <form id="searchForm">
+            <input type="tel" id="clientPhone" placeholder="Tu número (10 dígitos)" required maxlength="10">
+            <button type="submit" id="btnSearch">Consultar Garantía</button>
+        </form>
+
+        <div id="resultArea" class="result-card" style="display: none;">
+            <hr>
+            <h3>Estado de tu Orden</h3>
+            <div class="data-row"><span>Orden:</span> <strong id="res-id"></strong></div>
+            <div class="data-row"><span>Vehículo:</span> <strong id="res-auto"></strong></div>
+            <div class="data-row"><span>Garantía hasta:</span> <strong id="res-garantia" style="color: #25d366;"></strong></div>
+            <div class="data-row"><span>Trabajo:</span> <p id="res-trabajo"></p></div>
+            <a id="res-doc" href="#" target="_blank" class="btn-doc" style="display:none;">Ver Documentación</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfeWpjKHH6X3gfDMf_D6IYIZ9LxseyoDs",
+            authDomain: "clientes-dsg.firebaseapp.com",
+            projectId: "clientes-dsg",
+            storageBucket: "clientes-dsg.firebasestorage.app",
+            messagingSenderId: "1085310279239",
+            appId: "1:1085310279239:web:84c55d228c6fb2c7505b62"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phone = document.getElementById('clientPhone').value;
+            const btn = document.getElementById('btnSearch');
+            const resultArea = document.getElementById('resultArea');
+
+            btn.innerText = "Buscando...";
+            btn.disabled = true;
+
+            try {
+                // Buscamos en la colección 'servicios' por número de WhatsApp
+                const q = query(
+                    collection(db, "servicios"), 
+                    where("whatsapp", "==", phone),
+                    orderBy("fecha_creacion", "desc"),
+                    limit(1)
+                );
+
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    const data = querySnapshot.docs[0].data();
+                    
+                    // Llenar datos
+                    document.getElementById('res-id').innerText = data.id_orden;
+                    document.getElementById('res-auto').innerText = `${data.marca} ${data.modelo} ${data.anio}`;
+                    document.getElementById('res-garantia').innerText = data.garantia;
+                    document.getElementById('res-trabajo').innerText = data.trabajo;
+                    
+                    if(data.documentos) {
+                        const link = document.getElementById('res-doc');
+                        link.href = data.documentos;
+                        link.style.display = "block";
+                    }
+
+                    resultArea.style.display = "block";
+                } else {
+                    alert("No se encontró ninguna orden con ese número.");
+                    resultArea.style.display = "none";
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Hubo un error al consultar. Verifica los datos.");
+            } finally {
+                btn.innerText = "Consultar Garantía";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

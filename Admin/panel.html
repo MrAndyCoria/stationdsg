@@ -1,0 +1,111 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Estación DSG</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.6.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="./styles/panel.css">
+    <link rel="stylesheet" href="./components/sidebar.css">
+</head>
+<body>
+
+    <div id="sidebar-target"></div>
+
+    <main class="main-content">
+        <button id="mobile-menu-btn" class="menu-toggle">
+            <i class="ri-menu-line"></i>
+                </button>
+        <header class="dash-header">
+            <div>
+                <h1>Panel de Control</h1>
+                <p id="welcome-user">Bienvenido, Andy</p>
+            </div>
+            <div class="date-badge" id="current-date"></div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon income"><i class="ri-money-dollar-circle-line"></i></div>
+                <div class="stat-info">
+                    <span class="label">Total Facturado</span>
+                    <h2 id="total-facturado">$0.00</h2>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon jobs"><i class="ri-steering-2-line"></i></div>
+                <div class="stat-info">
+                    <span class="label">Servicios Realizados</span>
+                    <h2 id="total-servicios">0</h2>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon expenses"><i class="ri-shopping-cart-line"></i></div>
+                <div class="stat-info">
+                    <span class="label">Gastos del Mes</span>
+                    <h2 id="total-gastos">$0.00</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-details">
+            <div class="admin-card">
+                <h3>Últimos Movimientos</h3>
+                <div class="table-container">
+                    <table id="recent-activity">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Concepto</th>
+                                <th>Monto</th>
+                                <th>Tipo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activity-body">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        
+        
+                const firebaseConfig = {
+                apiKey: "AIzaSyCfeWpjKHH6X3gfDMf_D6IYIZ9LxseyoDs",
+                authDomain: "clientes-dsg.firebaseapp.com",
+                projectId: "clientes-dsg",
+                storageBucket: "clientes-dsg.firebasestorage.app",
+                messagingSenderId: "1085310279239",
+                appId: "1:1085310279239:web:84c55d228c6fb2c7505b62",
+                measurementId: "G-KWR29L6HL4"
+                };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // 1. IMPORTAR SIDEBAR DINÁMICAMENTE
+        async function includeSidebar() {
+            const target = document.getElementById('sidebar-target');
+            const response = await fetch('./components/sidebar.html');
+            target.innerHTML = await response.text();
+        }
+        includeSidebar();
+
+        // 2. SEGURIDAD Y DATOS
+        onAuthStateChanged(auth, (user) => {
+            if (!user) window.location.href = "login.html";
+            // Aquí puedes llamar a funciones para calcular totales desde Firestore
+        });
+
+        // 3. LOGOUT GLOBAL
+        window.logout = () => signOut(auth);
+
+        // FECHA ACTUAL
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-MX', { 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+        });
+    </script>
+</body>
+</html>

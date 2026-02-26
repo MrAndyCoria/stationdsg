@@ -1,0 +1,191 @@
+/* Sidebar Styles */
+.sidebar {
+    width: 260px;
+    background-color: #0f172a;
+    height: 100vh;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000; /* Asegura que siempre esté al frente */
+}
+
+.sidebar-logo {
+    padding: 30px;
+    font-size: 1.4rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #1e293b;
+}
+
+.sidebar-logo i {
+    color: #25d366;
+}
+
+.sidebar-nav {
+    flex-grow: 1;
+    padding: 20px 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 25px;
+    color: #94a3b8;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-item:hover, .nav-item.active {
+    background-color: #1e293b;
+    color: #ffffff;
+    border-left: 4px solid #25d366;
+}
+
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid #1e293b;
+}
+
+.btn-logout {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    padding: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Responsivo para el Sidebar */
+@media (max-width: 1024px) {
+    .sidebar { width: 80px; }
+    .sidebar span, .sidebar-logo span, .btn-logout span { display: none; }
+    .sidebar-logo { padding: 25px; justify-content: center; }
+    .nav-item { justify-content: center; padding: 20px; }
+}
+
+/* Admin/styles/servicios.css */
+
+/* Contenedor principal del formulario */
+.admin-card {
+    background: #ffffff;
+    padding: 35px;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.admin-card h3 {
+    margin-bottom: 25px;
+    color: #0f172a;
+    font-size: 1.5rem;
+    font-weight: 800;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 10px;
+}
+
+/* Grupos de inputs */
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    color: #1e293b;
+    background-color: #f8fafc;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+input:focus, textarea:focus {
+    outline: none;
+    border-color: #25d366;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(37, 211, 102, 0.1);
+}
+
+/* Estilo para el ID Orden (Lectura solamente) */
+input[readonly] {
+    background-color: #e2e8f0;
+    cursor: not-allowed;
+    color: #475569;
+    font-weight: 700;
+}
+
+/* Grid para campos cortos (Marca, Modelo, Año, Transmisión) */
+.vehicle-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+/* Grid para campos medianos (WhatsApp, ID, Monto, Garantía) */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Botón de Guardar */
+.btn-primary {
+    background-color: #25d366;
+    color: #0f172a;
+    border: none;
+    padding: 18px;
+    border-radius: 12px;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+    margin-top: 20px;
+    text-transform: uppercase;
+}
+
+.btn-primary:hover {
+    background-color: #1eb956;
+    transform: translateY(-2px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+/* Ajustes para dispositivos móviles */
+@media (max-width: 768px) {
+    .vehicle-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+}

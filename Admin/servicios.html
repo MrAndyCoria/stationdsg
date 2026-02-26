@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Servicios | Estación DSG</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.6.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="./styles/panel.css">
+    <link rel="stylesheet" href="./styles/servicios.css">
+    <link rel="stylesheet" href="./components/sidebar.css">
+    <style>
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); overflow-y: auto; }
+        .modal-content { background: #fff; margin: 2% auto; padding: 20px; width: 90%; max-width: 800px; border-radius: 15px; }
+        .actions-cell { display: flex; gap: 8px; align-items: center; }
+        .btn-add { background: #25d366; color: #0f172a; padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; margin-bottom: 20px; display: flex; align-items: center; gap: 5px; }
+        .notes-container { margin-top: 15px; background: #f8fafc; padding: 10px; border-radius: 8px; max-height: 200px; overflow-y: auto; border: 1px solid #e2e8f0; }
+        .note-item { border-bottom: 1px solid #e2e8f0; padding: 8px 0; font-size: 0.85rem; }
+        .note-item:last-child { border-bottom: none; }
+        .note-date { color: #64748b; font-weight: bold; font-size: 0.75rem; display: block; }
+        .badge-notes { background: #e2e8f0; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; cursor: pointer; }
+        .badge-notes:hover { background: #cbd5e1; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-target"></div>
+
+    <main class="main-content">
+        <button id="mobile-menu-btn" class="menu-toggle"><i class="ri-menu-line"></i></button>
+
+        <header class="dash-header">
+            <h1>Gestión de Servicios</h1>
+            <button class="btn-add" onclick="openModal()"><i class="ri-add-line"></i> Agregar Servicio</button>
+        </header>
+
+        <section class="admin-card">
+            <h3>Historial de Órdenes</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                <thead>
+                    <tr style="text-align: left; border-bottom: 2px solid #f1f5f9; color: #64748b; font-size: 0.9rem;">
+                        <th>ID Orden</th>
+                        <th>Vehículo / VIN</th>
+                        <th>WhatsApp</th>
+                        <th>Monto</th>
+                        <th>Notas</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-servicios-body"></tbody>
+            </table>
+        </section>
+    </main>
+
+    <div id="servicioModal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 id="modalTitle" style="margin:0;">Nueva Orden</h2>
+                <button onclick="closeModal()" style="border:none; background:none; font-size: 1.8rem; cursor:pointer; color: #64748b;">&times;</button>
+            </div>
+            
+            <form id="servicioForm">
+                <input type="hidden" id="edit-id">
+                
+                <div class="info-grid">
+                    <div class="form-group"><label>WhatsApp Cliente</label><input type="tel" id="tel" placeholder="Ej: 5512345678" required></div>
+                    <div class="form-group"><label>Orden ID</label><input type="text" id="id_orden" readonly style="background:#f1f5f9;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Número de Serie (VIN)</label>
+                    <input type="text" id="vin" placeholder="17 dígitos" maxlength="17" style="text-transform: uppercase;">
+                </div>
+
+                <div class="vehicle-grid">
+                    <div class="form-group"><label>Marca</label><input type="text" id="marca" required></div>
+                    <div class="form-group"><label>Modelo</label><input type="text" id="modelo" required></div>
+                    <div class="form-group"><label>Año</label><input type="number" id="anio" required></div>
+                    <div class="form-group"><label>Transmisión</label><input type="text" id="transmision" required></div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="form-group"><label>Monto ($)</label><input type="number" id="monto" step="0.01" required></div>
+                    <div class="form-group"><label>Garantía hasta</label><input type="date" id="garantia" required></div>
+                </div>
+
+                <div class="form-group"><label>Diagnóstico</label><textarea id="diagnostico" rows="2"></textarea></div>
+                <div class="form-group"><label>Trabajo Realizado</label><textarea id="trabajo" rows="2"></textarea></div>
+                
+                <div class="form-group" style="background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <label><strong>Bitácora de Notas</strong></label>
+                    <div style="display:flex; gap:10px; margin-top: 10px;">
+                        <input type="text" id="nueva-nota" placeholder="Añadir actualización al servicio...">
+                        <button type="button" onclick="addNote()" style="padding:0 20px; border-radius:8px; border:none; background:#0f172a; color:#fff; cursor:pointer;">Añadir</button>
+                    </div>
+                    <div id="notas-lista" class="notes-container"></div>
+                </div>
+
+                <div class="form-group" style="margin-top:15px;">
+                    <label>Evidencia (Foto)</label>
+                    <input type="file" id="foto_input" accept="image/*">
+                </div>
+
+                <button type="submit" id="btnGuardar" class="btn-primary" style="width:100%; margin-top:20px;">Guardar Orden de Servicio</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfeWpjKHH6X3gfDMf_D6IYIZ9LxseyoDs",
+            authDomain: "clientes-dsg.firebaseapp.com",
+            projectId: "clientes-dsg",
+            storageBucket: "clientes-dsg.firebasestorage.app",
+            messagingSenderId: "1085310279239",
+            appId: "1:1085310279239:web:84c55d228c6fb2c7505b62"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        let notasTemporales = [];
+
+        // --- CARGA DE DATOS EN TIEMPO REAL ---
+        const q = query(collection(db, "servicios"), orderBy("fecha_creacion", "desc"));
+        onSnapshot(q, (snapshot) => {
+            const tbody = document.getElementById('tabla-servicios-body');
+            tbody.innerHTML = "";
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const numNotas = data.notas ? data.notas.length : 0;
+                tbody.innerHTML += `
+                    <tr style="border-bottom: 1px solid #f1f5f9; height: 60px;">
+                        <td><strong>${data.id_orden}</strong></td>
+                        <td>
+                            <div style="font-weight: 500;">${data.marca} ${data.modelo}</div>
+                            <div style="font-size: 0.7rem; color: #64748b;">VIN: ${data.vin || 'N/A'}</div>
+                        </td>
+                        <td>${data.whatsapp}</td>
+                        <td style="color: #25d366; font-weight: bold;">$${data.monto.toLocaleString()}</td>
+                        <td><span class="badge-notes" onclick="editServicio('${docSnap.id}')">${numNotas} notas</span></td>
+                        <td class="actions-cell">
+                            <button onclick="editServicio('${docSnap.id}')" style="color:#6366f1; border:none; background:none; cursor:pointer; font-size:1.2rem;"><i class="ri-edit-line"></i></button>
+                            <button onclick="deleteServicio('${docSnap.id}')" style="color:#ef4444; border:none; background:none; cursor:pointer; font-size:1.2rem;"><i class="ri-delete-bin-line"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        });
+
+        // --- FUNCIONES DEL MODAL ---
+        window.openModal = () => {
+            document.getElementById('servicioForm').reset();
+            document.getElementById('edit-id').value = "";
+            document.getElementById('modalTitle').innerText = "Nueva Orden de Servicio";
+            document.getElementById('notas-lista').innerHTML = "<p style='text-align:center; color:#94a3b8; font-size:0.8rem;'>No hay notas aún</p>";
+            notasTemporales = [];
+            generarID();
+            document.getElementById('servicioModal').style.display = "block";
+        }
+
+        window.closeModal = () => { document.getElementById('servicioModal').style.display = "none"; }
+
+        function generarID() { document.getElementById('id_orden').value = `DSG-${Math.floor(1000 + Math.random() * 9000)}`; }
+
+        // --- EDITAR / CARGAR DATOS ---
+        window.editServicio = async (id) => {
+            const docRef = doc(db, "servicios", id);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                document.getElementById('edit-id').value = id;
+                document.getElementById('modalTitle').innerText = "Editar Orden " + data.id_orden;
+                document.getElementById('id_orden').value = data.id_orden;
+                document.getElementById('vin').value = data.vin || "";
+                document.getElementById('tel').value = data.whatsapp;
+                document.getElementById('marca').value = data.marca;
+                document.getElementById('modelo').value = data.modelo;
+                document.getElementById('anio').value = data.anio;
+                document.getElementById('transmision').value = data.transmision;
+                document.getElementById('monto').value = data.monto;
+                document.getElementById('garantia').value = data.garantia;
+                document.getElementById('diagnostico').value = data.diagnostico;
+                document.getElementById('trabajo').value = data.trabajo;
+                
+                notasTemporales = data.notas || [];
+                renderNotas();
+                document.getElementById('servicioModal').style.display = "block";
+            }
+        }
+
+        // --- BORRAR ---
+        window.deleteServicio = async (id) => {
+            if(confirm("¿Estás seguro de eliminar este registro permanentemente?")) {
+                await deleteDoc(doc(db, "servicios", id));
+            }
+        }
+
+        // --- LÓGICA DE NOTAS ---
+        window.addNote = () => {
+            const notaInput = document.getElementById('nueva-nota');
+            if(!notaInput.value.trim()) return;
+            
+            const nuevaNota = {
+                texto: notaInput.value.trim(),
+                fecha: new Date().toLocaleString('es-MX', { hour12: true })
+            };
+            
+            notasTemporales.unshift(nuevaNota); // La más reciente arriba
+            notaInput.value = "";
+            renderNotas();
+        }
+
+        function renderNotas() {
+            const lista = document.getElementById('notas-lista');
+            if(notasTemporales.length === 0) {
+                lista.innerHTML = "<p style='text-align:center; color:#94a3b8; font-size:0.8rem;'>No hay notas aún</p>";
+                return;
+            }
+            lista.innerHTML = notasTemporales.map(n => `
+                <div class="note-item">
+                    <span class="note-date">${n.fecha}</span>
+                    <span class="note-text">${n.texto}</span>
+                </div>
+            `).join('');
+        }
+
+        // --- GUARDAR FINAL ---
+        document.getElementById('servicioForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('edit-id').value;
+            const btn = document.getElementById('btnGuardar');
+            const file = document.getElementById('foto_input').files[0];
+            
+            btn.innerText = "Guardando...";
+            btn.disabled = true;
+
+            let fotoURL = "";
+            if (file) {
+                const storageRef = ref(storage, `evidencias/${Date.now()}_${file.name}`);
+                await uploadBytes(storageRef, file);
+                fotoURL = await getDownloadURL(storageRef);
+            }
+
+            const servicioData = {
+                whatsapp: document.getElementById('tel').value,
+                id_orden: document.getElementById('id_orden').value,
+                vin: document.getElementById('vin').value.toUpperCase(),
+                marca: document.getElementById('marca').value,
+                modelo: document.getElementById('modelo').value,
+                anio: document.getElementById('anio').value,
+                transmision: document.getElementById('transmision').value,
+                monto: parseFloat(document.getElementById('monto').value),
+                garantia: document.getElementById('garantia').value,
+                diagnostico: document.getElementById('diagnostico').value,
+                trabajo: document.getElementById('trabajo').value,
+                notas: notasTemporales,
+                fecha_actualizacion: new Date()
+            };
+
+            if(fotoURL) servicioData.foto_evidencia = fotoURL;
+
+            try {
+                if (editId) {
+                    await updateDoc(doc(db, "servicios", editId), servicioData);
+                } else {
+                    servicioData.fecha_creacion = new Date();
+                    await addDoc(collection(db, "servicios"), servicioData);
+                }
+                alert("¡Orden guardada con éxito!");
+                closeModal();
+            } catch (err) {
+                alert("Error al guardar: " + err.message);
+            } finally {
+                btn.innerText = "Guardar Orden de Servicio";
+                btn.disabled = false;
+            }
+        });
+
+        // Cargar Sidebar y auth
+        async function init() {
+            const target = document.getElementById('sidebar-target');
+            const response = await fetch('./components/sidebar.html');
+            target.innerHTML = await response.text();
+            
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('#mobile-menu-btn')) document.querySelector('.sidebar').classList.toggle('active');
+            });
+        }
+        init();
+        onAuthStateChanged(auth, (user) => { if (!user) window.location.href = "login.html"; });
+    </script>
+</body>
+</html>
