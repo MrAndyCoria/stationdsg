@@ -60,6 +60,14 @@
                 </div>
 
                 <div class="info-section">
+                    <h4>Información del Cliente</h4>
+                    <div class="grid-info">
+                        <div class="data-box"><label>Cliente</label><span id="res-cliente"></span></div>
+                        <div class="data-box"><label>Contacto</label><span id="res-whatsapp"></span></div>
+                    </div>
+                </div>
+
+                <div class="info-section">
                     <h4>Información del Vehículo</h4>
                     <div class="grid-info">
                         <div class="data-box"><label>Vehículo</label><span id="res-auto"></span></div>
@@ -123,6 +131,7 @@
             btn.disabled = true;
 
             try {
+                // Buscamos la última orden generada para ese número de WhatsApp
                 const q = query(
                     collection(db, "servicios"), 
                     where("whatsapp", "==", phone),
@@ -137,6 +146,8 @@
                     
                     // Mapeo de datos a la Hoja
                     document.getElementById('res-id').innerText = data.id_orden;
+                    document.getElementById('res-cliente').innerText = `${data.nombre || ''} ${data.apellido || ''}`.trim() || "CLIENTE REGISTRADO";
+                    document.getElementById('res-whatsapp').innerText = data.whatsapp;
                     document.getElementById('res-auto').innerText = `${data.marca} ${data.modelo} ${data.anio}`;
                     document.getElementById('res-vin').innerText = data.vin || "NO REGISTRADO";
                     document.getElementById('res-trans').innerText = data.transmision || "N/A";
@@ -160,12 +171,12 @@
 
                     resultArea.style.display = "block";
                 } else {
-                    alert("No se encontró ninguna orden con ese número.");
+                    alert("No se encontró ninguna orden con ese número de WhatsApp.");
                     resultArea.style.display = "none";
                 }
             } catch (error) {
                 console.error("Error:", error);
-                alert("Error al consultar. Si el error persiste, contacta a soporte técnico.");
+                alert("Error al consultar. Asegúrate de que el número sea correcto.");
             } finally {
                 btn.innerText = "Consultar Orden";
                 btn.disabled = false;
