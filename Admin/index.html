@@ -54,6 +54,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
 
         // CONFIGURACIÓN DE TU FIREBASE
         const firebaseConfig = {
@@ -67,6 +69,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
         const form = document.getElementById('adminForm');
 
@@ -99,6 +102,11 @@
                 btn.disabled = false;
                 btn.innerText = "Publicar Expediente";
             }
+            onAuthStateChanged(auth, (user) => {
+                if (!user) {
+                    window.location.href = "login.html";
+                }
+            });
         });
     </script>
 </body>
