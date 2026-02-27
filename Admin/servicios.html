@@ -19,6 +19,7 @@
         .note-date { color: #64748b; font-weight: bold; font-size: 0.75rem; display: block; }
         .badge-notes { background: #e2e8f0; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; cursor: pointer; }
         .badge-notes:hover { background: #cbd5e1; }
+        .client-name { font-weight: 600; color: #1e293b; display: block; }
     </style>
 </head>
 <body>
@@ -38,6 +39,7 @@
                 <thead>
                     <tr style="text-align: left; border-bottom: 2px solid #f1f5f9; color: #64748b; font-size: 0.9rem;">
                         <th>ID Orden</th>
+                        <th>Cliente</th>
                         <th>Vehículo / VIN</th>
                         <th>WhatsApp</th>
                         <th>Monto</th>
@@ -60,6 +62,11 @@
             <form id="servicioForm">
                 <input type="hidden" id="edit-id">
                 
+                <div class="info-grid">
+                    <div class="form-group"><label>Nombre del Cliente</label><input type="text" id="nombre" required placeholder="Juan"></div>
+                    <div class="form-group"><label>Apellido del Cliente</label><input type="text" id="apellido" required placeholder="Pérez"></div>
+                </div>
+
                 <div class="info-grid">
                     <div class="form-group"><label>WhatsApp Cliente</label><input type="tel" id="tel" placeholder="Ej: 5512345678" required></div>
                     <div class="form-group"><label>Orden ID</label><input type="text" id="id_orden" readonly style="background:#f1f5f9;"></div>
@@ -134,9 +141,12 @@
             snapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 const numNotas = data.notas ? data.notas.length : 0;
+                const fullNombre = `${data.nombre || ''} ${data.apellido || ''}`.trim() || 'N/A';
+                
                 tbody.innerHTML += `
                     <tr style="border-bottom: 1px solid #f1f5f9; height: 60px;">
                         <td><strong>${data.id_orden}</strong></td>
+                        <td><span class="client-name">${fullNombre}</span></td>
                         <td>
                             <div style="font-weight: 500;">${data.marca} ${data.modelo}</div>
                             <div style="font-size: 0.7rem; color: #64748b;">VIN: ${data.vin || 'N/A'}</div>
@@ -176,6 +186,8 @@
                 const data = docSnap.data();
                 document.getElementById('edit-id').value = id;
                 document.getElementById('modalTitle').innerText = "Editar Orden " + data.id_orden;
+                document.getElementById('nombre').value = data.nombre || "";
+                document.getElementById('apellido').value = data.apellido || "";
                 document.getElementById('id_orden').value = data.id_orden;
                 document.getElementById('vin').value = data.vin || "";
                 document.getElementById('tel').value = data.whatsapp;
@@ -211,7 +223,7 @@
                 fecha: new Date().toLocaleString('es-MX', { hour12: true })
             };
             
-            notasTemporales.unshift(nuevaNota); // La más reciente arriba
+            notasTemporales.unshift(nuevaNota);
             notaInput.value = "";
             renderNotas();
         }
@@ -248,6 +260,8 @@
             }
 
             const servicioData = {
+                nombre: document.getElementById('nombre').value,
+                apellido: document.getElementById('apellido').value,
                 whatsapp: document.getElementById('tel').value,
                 id_orden: document.getElementById('id_orden').value,
                 vin: document.getElementById('vin').value.toUpperCase(),
@@ -282,11 +296,12 @@
             }
         });
 
-        // Cargar Sidebar y auth
         async function init() {
             const target = document.getElementById('sidebar-target');
-            const response = await fetch('./components/sidebar.html');
-            target.innerHTML = await response.text();
+            try {
+                const response = await fetch('./components/sidebar.html');
+                target.innerHTML = await response.text();
+            } catch (e) { console.error("Error cargando sidebar"); }
             
             document.addEventListener('click', (e) => {
                 if (e.target.closest('#mobile-menu-btn')) document.querySelector('.sidebar').classList.toggle('active');
